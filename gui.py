@@ -10,21 +10,21 @@ if not os.path.exists("todos.txt"):
 sg.theme("DarkGreen3")
 
 clock = sg.Text('', key='clock')
-label = sg.Text("Type in a to-do")
+label = sg.Text("Yeni plan əlavə et:")
 input_box = sg.InputText(tooltip="Enter todo", key="todo")
-add_button = sg.Button("Add", size=10)
+add_button = sg.Button("Əlavə et", size=10)
 list_box = sg.Listbox(values=functions.get_todos(), key='todos',
                       enable_events=True, size=[45, 10])
-edit_button = sg.Button("Edit")
-complete_button = sg.Button("Complete")
-exit_button = sg.Button("Exit")
+edit_button = sg.Button("Redaktə et")
+complete_button = sg.Button("Sil")
+exit_button = sg.Button("Çıxış")
 
 layout = [[clock],
           [label],
           [input_box, add_button],
           [list_box, edit_button, complete_button],
           [exit_button]]
-window = sg.Window('My To-Do App',
+window = sg.Window('Planlama aplikasiyası',
                    layout=layout,
                    font=('Helvetica', 10))
 
@@ -35,14 +35,17 @@ while True:
     print(values)
     print(values["todos"])
     match event:
-        case "Add":
+        case "Əlavə et":
             todos = functions.get_todos()
             new_todo = values['todo'] + "\n"
-            todos.append(new_todo)
-            functions.write_todos(todos)
-            window['todos'].update(values=todos)
-            window['todo'].update(value='')
-        case "Edit":
+            if values['todo'] == "":
+                sg.popup("Zəhmət olmasa nəsə yazın...",font=("Helvetica", 10))
+            else:
+                todos.append(new_todo)
+                functions.write_todos(todos)
+                window['todos'].update(values=todos)
+                window['todo'].update(value='')
+        case "Redaktə et":
             try:
                 todo_to_edit = values["todos"][0]
                 new_todo = values['todo'] + '\n'
@@ -54,8 +57,10 @@ while True:
                 window['todos'].update(values=todos)
                 window['todo'].update(value='')
             except IndexError:
-                sg.popup("Please select an item first.", font=("Helvetica", 10))
-        case "Complete":
+                sg.popup("Zəhmət olmasa listdə olanlardan birini seçin.", font=("Helvetica", 10))
+            except ValueError:
+                sg.popup("List boşdur...", font=("Helvetica", 10))
+        case "Sil":
             try:
                 todo_to_complete = values['todos'][0]
                 todos = functions.get_todos()
@@ -64,14 +69,22 @@ while True:
                 window['todos'].update(values=todos)
                 window['todo'].update(value='')
             except IndexError:
-                sg.popup("Please select an item first", font=("Helvetica", 10))
+                sg.popup("Zəhmət olmasa listdə olanlardan birini seçin.", font=("Helvetica", 10))
+            except ValueError:
+                sg.popup("List boşdur. Zəhmət olmasa yeni plan əlavə edin", font=("Helvetica", 10))
 
-        case 'Exit':
+        case 'Çıxış':
             break
         case 'todos':
-            window['todo'].update(value=values['todos'][0])
+            try:
+                window['todo'].update(value=values['todos'][0])
+            except IndexError:
+                sg.popup("List boşdur...", font=("Helvetica", 10))
 
         case sg.WIN_CLOSED:
-            break
+            try:
+                break
+            except TypeError:
+                sg.popup('Çıxış etmək üçün "Çıxış" düyməsinə klik edin ')
 
 window.close()
